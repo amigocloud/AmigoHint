@@ -9,6 +9,9 @@
 #import "AmigoHint.h"
 
 @implementation AmigoHintObject
+@synthesize headerStr;
+@synthesize textStr;
+@synthesize view;
 @synthesize header;
 @synthesize text;
 @synthesize buttonPosition;
@@ -24,13 +27,18 @@
 @synthesize backgroundColor;
 @synthesize button;
 
-#define UIColorFromRGB(rgbValue) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:0.4]
+#define BG_ALPHA 0.6
+
+#define UIColorFromRGB(rgbValue) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:BG_ALPHA]
 
 #define UIColorFromRGBAlpha(rgbValue) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
+#define BLUE_COLOR UIColorFromRGBAlpha(0x74c9cd)
+
 - (id)init:(NSString*)key
 {
-    active = false;
+    active = true;
+#if 1
     NSNumber *showTutorialOnLaunch = [[NSUserDefaults standardUserDefaults] objectForKey:key];
     if (showTutorialOnLaunch == nil)
     {
@@ -42,13 +50,18 @@
         active = false;
         return self;
     }
-
+#endif
+    
     hintIndex = 0;
     backgroundColor = [UIColor clearColor];
     objArray = [[NSMutableArray alloc]init];
     
     wndw = [UIApplication sharedApplication].keyWindow;
     self = [super initWithFrame:wndw.frame];
+        
+    self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    self.contentMode = UIViewContentModeRedraw;
+    
     if (self) {
         // Initialization code
         [self setBackgroundColor:UIColorFromRGB(0x000000)];
@@ -67,11 +80,21 @@
 -(void)nextMethod
 {
     [self nextHint];
-    [self setNeedsDisplay];
 }
 
 -(void)nextHint
 {
+    if([objArray count] > 0)
+    {
+        AmigoHintObject *obj = [objArray objectAtIndex:hintIndex];
+        
+        UILabel *oldH = obj.header;
+        [oldH removeFromSuperview];
+        
+        UILabel *oldL = obj.text;
+        [oldL removeFromSuperview];
+    }
+    
     hintIndex++;
     if(hintIndex >= [objArray count])
     {
@@ -84,26 +107,26 @@
 
 -(void)update
 {
-    if(!active)
+    if(!active || [objArray count] == 0)
         return;
     
     AmigoHintObject *obj = [objArray objectAtIndex:hintIndex];
 
-    if(hintIndex>0)
-    {
-        AmigoHintObject *objLast = [objArray objectAtIndex:hintIndex-1];
-        
-        UILabel *oldH = objLast.header;
+    UILabel *oldH = obj.header;
+    if(oldH!=nil)
         [oldH removeFromSuperview];
-
-        UILabel *oldL = objLast.text;
+    
+    UILabel *oldL = obj.text;
+    if(oldL!=nil)
         [oldL removeFromSuperview];
-    }
-    UILabel *h = obj.header;
-    [self addSubview:h];
+    
+    [self updateElements];
 
-    UILabel *l = obj.text;
-    [self addSubview:l];
+    UILabel *hl = obj.header;
+    [self addSubview:hl];
+
+    UILabel *tl = obj.text;
+    [self addSubview:tl];
     
     if(hintIndex < [objArray count]-1)
         [button setTitle:@"Next" forState:UIControlStateNormal];
@@ -111,62 +134,57 @@
         [button setTitle:@"Close" forState:UIControlStateNormal];
     
     [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [button setBackgroundColor:[UIColor blueColor]];
+    [button setBackgroundColor:BLUE_COLOR];
     
     CGRect r = wndw.frame;
+    
+    // Button positions for iPhone
     float left = r.origin.x + r.size.width*0.1;
-    float right = r.origin.x + r.size.width*0.8;
+    float right = r.origin.x + r.size.width*0.6;
     float top = r.origin.y + r.size.height*0.1;
-    float bottom = r.origin.y + r.size.height*0.85;
-    switch (obj.buttonPosition)
+    float bottom = r.origin.y + r.size.height*0.8;
+    float centerX = r.origin.x + r.size.width*0.4;
+    float centerY = r.origin.y + r.size.height*0.5;
+    float buttonWidth = 100;
+    
+    if ( UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad )
     {
-        case BottomLeft:
-            button.frame = CGRectMake(left, bottom, 150.0, 40.0);
-            break;
-            
-        case BottomRight:
-            button.frame = CGRectMake(right, bottom, 150.0, 40.0);
-            break;
-            
-        case TopLeft:
-            button.frame = CGRectMake(left, top, 150.0, 40.0);
-            break;
-            
-        case TopRight:
-            button.frame = CGRectMake(right, top, 150.0, 40.0);
-            break;
+        // Button positions for iPad
+        right = r.origin.x + r.size.width*0.8;
+        buttonWidth = 150;
     }
+    
+    float x=0, y=0;
+    
+    if(obj.buttonPosition&AmigoHintPosition_Left)
+        x = left;
+
+    if(obj.buttonPosition&AmigoHintPosition_Right)
+        x = right;
+
+    if(obj.buttonPosition&AmigoHintPosition_CenterX)
+        x = centerX;
+
+    if(obj.buttonPosition&AmigoHintPosition_Top)
+        y = top;
+    
+    if(obj.buttonPosition&AmigoHintPosition_Bottom)
+        y = bottom;
+    
+    if(obj.buttonPosition&AmigoHintPosition_CenterY)
+        y = centerY;
+
+    button.frame = CGRectMake(x, y, buttonWidth, 40.0);
+
+    [self setNeedsDisplay];
 }
 
--(UILabel *)createLabel:(NSString*)text position:(CGPoint)position size:(int)size color:(UIColor*)color
-{
-    NSMutableAttributedString *attributedText =
-    [[NSMutableAttributedString alloc]
-     initWithString:text
-     attributes:@
-     {
-     NSFontAttributeName: [UIFont boldSystemFontOfSize:size],
-     NSForegroundColorAttributeName: color
-     }];
-    
-    CGRect r = wndw.frame;
-    CGRect labelSize = [attributedText boundingRectWithSize:CGSizeMake(r.size.width/2.0, CGFLOAT_MAX)
-                            options:NSStringDrawingUsesLineFragmentOrigin context:nil];
-    
-    UILabel *fromLabel = [[UILabel alloc]initWithFrame:CGRectMake(position.x, position.y, labelSize.size.width, labelSize.size.height)];
-    [fromLabel setText:text];
-    fromLabel.font = [UIFont systemFontOfSize:size];
-    fromLabel.numberOfLines = 0;
-    [fromLabel setTextColor:color];
-    return fromLabel;
-}
-
--(void)addHint:(NSString*)header text:(NSString*)text buttonPosition:(AmigoHintPositionType)buttonPosition textPosition:(AmigoHintPositionType)textPosition view:(UIView*)view
+-(void)updateElements
 {
     if(!active)
         return;
-
-    AmigoHintObject *obj = [AmigoHintObject alloc];
+    
+    AmigoHintObject *obj = [objArray objectAtIndex:hintIndex];
     
     CGRect r = wndw.frame;
     float left = r.origin.x + r.size.width*0.1;
@@ -177,58 +195,114 @@
     float centerY = r.origin.y + r.size.height*0.25;
     CGPoint textPosH;
     CGPoint textPosT;
-    switch (textPosition)
-    {
-        case BottomLeft:
-            textPosH = CGPointMake(left, bottom);
-            textPosT = CGPointMake(left, bottom+50);
-            break;
-            
-        case BottomRight:
-            textPosH = CGPointMake(right, bottom);
-            textPosT = CGPointMake(right, bottom+50);
-            break;
-            
-        case TopLeft:
-            textPosH = CGPointMake(left, top);
-            textPosT = CGPointMake(left, top+50);
-            break;
-            
-        case TopRight:
-            textPosH = CGPointMake(right, top);
-            textPosT = CGPointMake(right, top+50);
-            break;
-            
-        case Center:
-            textPosH = CGPointMake(centerX, centerY);
-            textPosT = CGPointMake(centerX, centerY+50);
-            break;
-            
-    }
-
-    UILabel *headerLabel = [self createLabel:header position:textPosH size:32 color:[UIColor blueColor]];
-    UILabel *textLabel = [self createLabel:text position:textPosT size:24 color:[UIColor whiteColor]];
     
-    CGRect vf = view.frame;
+    float x=0, y=0;
+    
+    if(obj.textPosition&AmigoHintPosition_Left)
+        x = left;
+    
+    if(obj.textPosition&AmigoHintPosition_Right)
+        x = right;
+    
+    if(obj.textPosition&AmigoHintPosition_CenterX)
+        x = centerX;
+    
+    if(obj.textPosition&AmigoHintPosition_Top)
+        y = top;
+    
+    if(obj.textPosition&AmigoHintPosition_Bottom)
+        y = bottom;
+    
+    if(obj.textPosition&AmigoHintPosition_CenterY)
+        y = centerY;
+
+    textPosH = CGPointMake(x, y);
+    textPosT = CGPointMake(x, y+60);
+
+    // Font sizes for iPhone
+    int fontSizeH = 24;
+    int fontSizeT = 16;
+    if ( UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad )
+    {
+        // Font sizes for iPad
+        fontSizeH = 32;
+        fontSizeT = 24;
+    }
+    
+    UILabel *headerLabel = [self createLabel:obj.headerStr position:textPosH size:fontSizeH color:BLUE_COLOR bold:true];
+    UILabel *textLabel = [self createLabel:obj.textStr position:textPosT size:fontSizeT color:[UIColor whiteColor] bold:false];
+    
+    CGRect vf = obj.view.frame;
     vf.size.width *= 2;
-    vf.origin.x = view.frame.origin.x - view.frame.size.width/2.0;
+    vf.origin.x = obj.view.frame.origin.x - obj.view.frame.size.width/2.0;
     vf.size.height *= 2;
-    vf.origin.y = view.frame.origin.y - view.frame.size.height/2.0;
+    vf.origin.y = obj.view.frame.origin.y - obj.view.frame.size.height/2.0;
     
     obj.header = headerLabel;
     obj.text = textLabel;
     obj.rect = vf;
+}
+
+-(UILabel *)createLabel:(NSString*)text position:(CGPoint)position size:(int)size color:(UIColor*)color bold:(bool)bold
+{
+    NSMutableAttributedString *attributedText;
+    if(bold)
+    {
+        attributedText = [[NSMutableAttributedString alloc]
+                          initWithString:text
+                          attributes:@
+                          {
+                          NSFontAttributeName: [UIFont boldSystemFontOfSize:size],
+                          NSForegroundColorAttributeName: color
+                          }];
+    } else
+    {
+        attributedText = [[NSMutableAttributedString alloc]
+                          initWithString:text
+                          attributes:@
+                          {
+                          NSFontAttributeName: [UIFont systemFontOfSize:size],
+                          NSForegroundColorAttributeName: color
+                          }];
+    }
+    
+    CGRect r = wndw.frame;
+    CGRect labelSize = [attributedText boundingRectWithSize:CGSizeMake(r.size.width*0.9, CGFLOAT_MAX)
+                            options:NSStringDrawingUsesLineFragmentOrigin context:nil];
+    
+    UILabel *fromLabel = [[UILabel alloc]initWithFrame:CGRectMake(position.x, position.y, labelSize.size.width, labelSize.size.height)];
+    [fromLabel setText:text];
+    fromLabel.font = [UIFont systemFontOfSize:size];
+    fromLabel.numberOfLines = 0;
+    [fromLabel setTextColor:color];
+    return fromLabel;
+}
+
+-(void)addHint:(NSString*)header text:(NSString*)text buttonPosition:(int)buttonPosition textPosition:(int)textPosition view:(UIView*)view
+{
+    if(!active)
+        return;
+
+    AmigoHintObject *obj = [AmigoHintObject alloc];
+    obj.headerStr = header;
+    obj.textStr = text;
     obj.buttonPosition = buttonPosition;
     obj.textPosition = textPosition;
+    obj.view = view;
     [objArray addObject:obj];
+    
     [self update];
 }
+
+
 
 - (void)drawRect:(CGRect)rect
 {
     if(!active)
         return;
 
+    [self update];
+    
     [backgroundColor setFill];
     UIRectFill(rect);
 
@@ -240,7 +314,7 @@
     CGPoint center = CGPointMake(holeRect.origin.x + holeRect.size.width / 2.0, holeRect.origin.y + holeRect.size.height / 2.0);
     CGContextRef ctx = UIGraphicsGetCurrentContext();
     CGContextBeginPath(ctx);
-    CGContextSetStrokeColorWithColor(ctx, [UIColorFromRGB(0x0050ff) CGColor]);
+    CGContextSetStrokeColorWithColor(ctx, [UIColorFromRGB(0x74c9cd) CGColor]);
 
     float step=10;
     float size = holeRect.size.width * 0.9;
@@ -255,7 +329,7 @@
 
     // Draw hole
     float sizeHole = holeRect.size.width * 1.0;
-    float alpha = 0.4;
+    float alpha = BG_ALPHA;
     for(int i=0; i<50; i++)
     {
         CGRect holeRectRound = CGRectMake(center.x-sizeHole/2.0, center.y-sizeHole/2.0, sizeHole, sizeHole);
@@ -265,7 +339,7 @@
         [color setFill];
         UIRectFill(holeRectIntersection);
         sizeHole -= 1;
-        alpha -= 0.008;
+        alpha -= 0.015;
     }
 }
 

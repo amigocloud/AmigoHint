@@ -8,14 +8,32 @@
 
 #import <UIKit/UIKit.h>
 
+enum AmigoHintPositionType
+{
+    AmigoHintPosition_Bottom = 0x01,
+    AmigoHintPosition_Top = 0x02,
+    AmigoHintPosition_Right = 0x04,
+    AmigoHintPosition_Left = 0x08,
+    AmigoHintPosition_CenterX = 0x10,
+    AmigoHintPosition_CenterY = 0x20
+};
+
 @interface AmigoHintObject : NSObject
 {
+    NSString *headerStr;
+    NSString *textStr;
+    int buttonPosition;
+    int textPosition;
+    UIView *view;
+    
     CGRect  rect;
     UILabel *header;
     UILabel *text;
-    int     buttonPosition;
-    int     textPosition;
 }
+
+@property (retain, nonatomic) NSString *headerStr;
+@property (retain, nonatomic) NSString *textStr;
+@property (retain, nonatomic) UIView *view;
 
 @property (nonatomic) CGRect rect;
 @property (retain, nonatomic) UILabel *header;
@@ -38,16 +56,8 @@
     bool active;
 }
 
-typedef NS_ENUM(NSInteger, AmigoHintPositionType) {
-    BottomLeft = 0,
-    BottomRight = 1,
-    TopLeft = 2,
-    TopRight = 3,
-    Center = 4
-};
-
 -(id)init:(NSString*)key;
--(void)addHint:(NSString*)header text:(NSString*)text buttonPosition:(AmigoHintPositionType)buttonPosition textPosition:(AmigoHintPositionType)textPosition view:(UIView*)view;
+-(void)addHint:(NSString*)header text:(NSString*)text buttonPosition:(int)buttonPosition textPosition:(int)textPosition view:(UIView*)view;
 
 @property (retain, nonatomic) UIWindow* wndw;
 @property (retain, nonatomic) NSMutableArray *objArray;

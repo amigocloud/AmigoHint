@@ -26,8 +26,17 @@
 -(void) viewDidAppear:(BOOL)animated
 {
     hintView = [[AmigoHint alloc] init:@"TestHint1"];
-    [hintView addHint:@"Hint for button 1" text:@"Some text\nSecond line of text" buttonPosition:BottomRight textPosition:TopRight view:button1];
-    [hintView addHint:@"Hint for button 2" text:@"Another text\n - second line of text\n - third Line" buttonPosition:BottomLeft textPosition:TopLeft view:button2];
+    [hintView addHint:@"Hint for button 1"
+                 text:@"Some text\nSecond line of text"
+                buttonPosition:AmigoHintPosition_Bottom|AmigoHintPosition_Right
+                textPosition:AmigoHintPosition_Top|AmigoHintPosition_Right
+                 view:button1];
+    
+    [hintView addHint:@"Hint for button 2"
+                 text:@"Another text\n - second line of text\n - third Line"
+       buttonPosition:AmigoHintPosition_Bottom|AmigoHintPosition_Left
+         textPosition:AmigoHintPosition_Top|AmigoHintPosition_Left
+                 view:button2];
 }
 
 - (void)didReceiveMemoryWarning {
