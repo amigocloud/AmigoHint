@@ -25,7 +25,8 @@
 @synthesize wndw;
 @synthesize objArray;
 @synthesize backgroundColor;
-@synthesize button;
+@synthesize nextButton;
+@synthesize prevButton;
 
 #define BG_ALPHA 0.6
 
@@ -35,8 +36,10 @@
 
 #define BLUE_COLOR UIColorFromRGBAlpha(0x74c9cd)
 
-- (id)init:(NSString*)key
+- (id)init:(NSString*)key complete:( void ( ^ )( void ) )complete;
 {
+    callback = complete;
+    
     active = true;
 #if 1
     NSNumber *showTutorialOnLaunch = [[NSUserDefaults standardUserDefaults] objectForKey:key];
@@ -48,6 +51,8 @@
     } else
     {
         active = false;
+        if(callback!=nil)
+            callback();
         return self;
     }
 #endif
@@ -66,20 +71,54 @@
         // Initialization code
         [self setBackgroundColor:UIColorFromRGB(0x000000)];
         self.opaque = NO;
+
+        prevButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [prevButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [prevButton setBackgroundColor:BLUE_COLOR];
+        [prevButton setTitle:@"Previous" forState:UIControlStateNormal];
+        [prevButton addTarget:self action:@selector(prevMethod)
+             forControlEvents:UIControlEventTouchUpInside];
+        [self addSubview:prevButton];
         
-        button = [UIButton buttonWithType:UIButtonTypeCustom];
-        [button addTarget:self action:@selector(nextMethod)
+        nextButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [nextButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [nextButton setBackgroundColor:BLUE_COLOR];
+        [nextButton addTarget:self action:@selector(nextMethod)
          forControlEvents:UIControlEventTouchUpInside];
-        [self addSubview:button];
+        [self addSubview:nextButton];
 
         [wndw addSubview:self];
     }
     return self;
 }
 
+-(void)prevMethod
+{
+    [self prevHint];
+}
+
 -(void)nextMethod
 {
     [self nextHint];
+}
+
+-(void)prevHint
+{
+    if([objArray count] > 0)
+    {
+        AmigoHintObject *obj = [objArray objectAtIndex:hintIndex];
+        
+        UILabel *oldH = obj.header;
+        [oldH removeFromSuperview];
+        
+        UILabel *oldL = obj.text;
+        [oldL removeFromSuperview];
+    }
+    
+    if(hintIndex > 0)
+        hintIndex--;
+    
+    [self update];
 }
 
 -(void)nextHint
@@ -99,6 +138,9 @@
     if(hintIndex >= [objArray count])
     {
         [self removeFromSuperview];
+        if(callback!=nil)
+            callback();
+        
     } else
     {
         [self update];
@@ -128,13 +170,19 @@
     UILabel *tl = obj.text;
     [self addSubview:tl];
     
-    if(hintIndex < [objArray count]-1)
-        [button setTitle:@"Next" forState:UIControlStateNormal];
+    if(hintIndex==0)
+        prevButton.hidden=true;
     else
-        [button setTitle:@"Close" forState:UIControlStateNormal];
+        prevButton.hidden=false;
     
-    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [button setBackgroundColor:BLUE_COLOR];
+    if(hintIndex < [objArray count]-1)
+    {
+        [nextButton setTitle:@"Next" forState:UIControlStateNormal];
+    }
+    else
+    {
+        [nextButton setTitle:@"Close" forState:UIControlStateNormal];
+    }
     
     CGRect r = wndw.frame;
     
@@ -143,28 +191,19 @@
     float right = r.origin.x + r.size.width*0.6;
     float top = r.origin.y + r.size.height*0.1;
     float bottom = r.origin.y + r.size.height*0.8;
-    float centerX = r.origin.x + r.size.width*0.4;
-    float centerY = r.origin.y + r.size.height*0.5;
+    float centerY = r.origin.y + r.size.height*0.6;
     float buttonWidth = 100;
     
     if ( UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad )
     {
         // Button positions for iPad
         right = r.origin.x + r.size.width*0.8;
+        centerY = r.origin.y + r.size.height*0.7;
         buttonWidth = 150;
     }
     
-    float x=0, y=0;
+    float y;
     
-    if(obj.buttonPosition&AmigoHintPosition_Left)
-        x = left;
-
-    if(obj.buttonPosition&AmigoHintPosition_Right)
-        x = right;
-
-    if(obj.buttonPosition&AmigoHintPosition_CenterX)
-        x = centerX;
-
     if(obj.buttonPosition&AmigoHintPosition_Top)
         y = top;
     
@@ -174,7 +213,8 @@
     if(obj.buttonPosition&AmigoHintPosition_CenterY)
         y = centerY;
 
-    button.frame = CGRectMake(x, y, buttonWidth, 40.0);
+    prevButton.frame = CGRectMake(left, y, buttonWidth, 40.0);
+    nextButton.frame = CGRectMake(right, y, buttonWidth, 40.0);
 
     [self setNeedsDisplay];
 }
@@ -189,14 +229,14 @@
     CGRect r = wndw.frame;
     float left = r.origin.x + r.size.width*0.1;
     float right = r.origin.x + r.size.width*0.6;
-    float top = r.origin.y + r.size.height*0.1;
+    float top = r.origin.y + r.size.height*0.2;
     float bottom = r.origin.y + r.size.height*0.6;
     float centerX = r.origin.x + r.size.width*0.25;
     float centerY = r.origin.y + r.size.height*0.25;
     CGPoint textPosH;
     CGPoint textPosT;
     
-    float x=0, y=0;
+    float x, y;
     
     if(obj.textPosition&AmigoHintPosition_Left)
         x = left;

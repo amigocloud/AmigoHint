@@ -43,25 +43,32 @@ enum AmigoHintPositionType
 
 @end
 
+typedef void (^completeCallback)(void);
+
 @interface AmigoHint : UIView
 {
     UIWindow* wndw;
-    UIButton *nextButton;
     
     NSMutableArray *objArray;
     UIColor *backgroundColor;
-    UIButton *button;
+    UIButton *prevButton;
+    UIButton *nextButton;
     
     int hintIndex;
     bool active;
+
+    completeCallback callback;
+    
 }
 
--(id)init:(NSString*)key;
+-(id)init:(NSString*)key complete:( void ( ^ )( void ) )complete;
+                                   
 -(void)addHint:(NSString*)header text:(NSString*)text buttonPosition:(int)buttonPosition textPosition:(int)textPosition view:(UIView*)view;
 
 @property (retain, nonatomic) UIWindow* wndw;
 @property (retain, nonatomic) NSMutableArray *objArray;
 @property (retain, nonatomic) UIColor *backgroundColor;
-@property (retain, nonatomic) UIButton *button;
+@property (retain, nonatomic) UIButton *prevButton;
+@property (retain, nonatomic) UIButton *nextButton;
 
 @end
