@@ -27,6 +27,7 @@
 @synthesize backgroundColor;
 @synthesize nextButton;
 @synthesize prevButton;
+@synthesize skipButton;
 
 #define BG_ALPHA 0.6
 
@@ -87,9 +88,24 @@
          forControlEvents:UIControlEventTouchUpInside];
         [self addSubview:nextButton];
 
+        skipButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [skipButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [skipButton setBackgroundColor:BLUE_COLOR];
+        [skipButton setTitle:@"Skip >>" forState:UIControlStateNormal];
+        [skipButton addTarget:self action:@selector(skipMethod)
+             forControlEvents:UIControlEventTouchUpInside];
+        [self addSubview:skipButton];
+
         [wndw addSubview:self];
     }
     return self;
+}
+
+-(void)skipMethod
+{
+    [self removeFromSuperview];
+    if(callback!=nil)
+        callback();    
 }
 
 -(void)prevMethod
@@ -216,6 +232,16 @@
     prevButton.frame = CGRectMake(left, y, buttonWidth, 40.0);
     nextButton.frame = CGRectMake(right, y, buttonWidth, 40.0);
 
+    if ( UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad )
+    {
+        // iPad
+        skipButton.frame = CGRectMake(right, y-80, buttonWidth, 40.0);
+    }else
+    {
+        // iPhone
+        skipButton.frame = CGRectMake(right, y-60, buttonWidth, 40.0);
+    }
+
     [self setNeedsDisplay];
 }
 
@@ -272,11 +298,12 @@
     UILabel *headerLabel = [self createLabel:obj.headerStr position:textPosH size:fontSizeH color:BLUE_COLOR bold:true];
     UILabel *textLabel = [self createLabel:obj.textStr position:textPosT size:fontSizeT color:[UIColor whiteColor] bold:false];
     
-    CGRect vf = obj.view.frame;
-    vf.size.width *= 2;
-    vf.origin.x = obj.view.frame.origin.x - obj.view.frame.size.width/2.0;
-    vf.size.height *= 2;
-    vf.origin.y = obj.view.frame.origin.y - obj.view.frame.size.height/2.0;
+    CGRect vfOrig = [obj.view convertRect:obj.view.bounds toView:wndw];
+    CGRect vf;
+    vf.size.width = vfOrig.size.width * 2;
+    vf.origin.x = vfOrig.origin.x - vfOrig.size.width/2.0;
+    vf.size.height = vfOrig.size.height * 2;
+    vf.origin.y = vfOrig.origin.y - vfOrig.size.height/2.0;
     
     obj.header = headerLabel;
     obj.text = textLabel;

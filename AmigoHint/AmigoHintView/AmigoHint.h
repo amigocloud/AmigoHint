@@ -53,6 +53,7 @@ typedef void (^completeCallback)(void);
     UIColor *backgroundColor;
     UIButton *prevButton;
     UIButton *nextButton;
+    UIButton *skipButton;
     
     int hintIndex;
     bool active;
@@ -70,5 +71,6 @@ typedef void (^completeCallback)(void);
 @property (retain, nonatomic) UIColor *backgroundColor;
 @property (retain, nonatomic) UIButton *prevButton;
 @property (retain, nonatomic) UIButton *nextButton;
+@property (retain, nonatomic) UIButton *skipButton;
 
 @end
