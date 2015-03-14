@@ -1,7 +1,7 @@
 AmigoHint
 =========
 
-#### What is AmigoHint
+#### What is AmigoHint?
 
 AmigoHint is the Objective-C++ library that makes development of an on-screen help easy for iOS devices. 
 
