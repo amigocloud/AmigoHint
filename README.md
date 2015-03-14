@@ -4,7 +4,7 @@ AmigoHint
 AmigoHint is the Objective-C++ library that makes development of the on screen help easy. 
 
 Here is a little example of hint for two buttons:
-
+```obj-c
 hintView = [[AmigoHint alloc] init:@"TestHint2" complete:^
 {
     printf("Hint complete!\n");
@@ -21,4 +21,4 @@ hintView = [[AmigoHint alloc] init:@"TestHint2" complete:^
             buttonPosition:AmigoHintPosition_Bottom
             textPosition:AmigoHintPosition_Top|AmigoHintPosition_Left
             view:button2];
-
+```
