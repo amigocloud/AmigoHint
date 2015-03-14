@@ -1,9 +1,9 @@
 AmigoHint
 =========
 
-AmigoHint is the Objective-C++ library that makes development of the on screen help easy. 
+AmigoHint is the Objective-C++ library that makes development of an on-screen help easy for iOS devices. 
 
-Here is a little example of hint for two buttons:
+Here is the example of hint for two buttons:
 ```obj-c
 hintView = [[AmigoHint alloc] init:@"TestHint2" complete:^
 {
