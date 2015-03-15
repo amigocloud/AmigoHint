@@ -7,22 +7,17 @@ AmigoHint is the Objective-C++ library that makes development of an on-screen he
 
 #### Example
 ```obj-c
-hintView = [[AmigoHint alloc] init:@"TestHint2" complete:^
-{
-    printf("Hint complete!\n");
-}];
+    hintView = [[AmigoHint alloc] init:@"GlobeViewHint_1" complete:^ void ( void )
+                {
+                    [globeVC showDatasetsIfNeeded];
+                }];
 
-[hintView addHint:@"Hint for button 1"
-            text:@"Button1 will do some actions"
-            buttonPosition:AmigoHintPosition_Bottom
-            textPosition:AmigoHintPosition_Top|AmigoHintPosition_Right
-            view:button1];
+    [hintView addHint:@"List of datasets"
+                text:@"- Shows list of available datasets and tracks.\n- Togle visibility on the globe.\n- Selecting dataset will zoom in to it."
+                buttonPosition:AmigoHintPosition_Bottom
+                textPosition:AmigoHintPosition_Top|AmigoHintPosition_Left
+                view:navbarVC.datasetsBtn];
 
-[hintView addHint:@"Hint for button 2"
-            text:@"Button2 will do another action"
-            buttonPosition:AmigoHintPosition_Bottom
-            textPosition:AmigoHintPosition_Top|AmigoHintPosition_Left
-            view:button2];
 ```
 
 #### Screenshot
