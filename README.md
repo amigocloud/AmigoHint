@@ -24,3 +24,7 @@ hintView = [[AmigoHint alloc] init:@"TestHint2" complete:^
             textPosition:AmigoHintPosition_Top|AmigoHintPosition_Left
             view:button2];
 ```
+
+#### Screenshot
+The AmigoCloud application screenshot
+![Screenshot](http://i.imgur.com/LBNQEtj.png)
